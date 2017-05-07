@@ -1,4 +1,4 @@
-## Inline Form Errors
+## Inline Form Errors- Example. Do Not Use This Module
 
 Example that might allow for inline form errors in Backdrop without the need to modify core APIs.
 
