@@ -1,0 +1,5 @@
+name = Inline Form Errors
+description = Example for implementing inline for errors without modifying core APIs
+backdrop = 1.x
+type = module
+

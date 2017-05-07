@@ -1,0 +1,133 @@
+<?php
+
+/**
+ * Implements hook_theme_registry_alter().
+ *
+ * Since our module weight is very high, we need to take over form errors before
+ * the layout module processes them.
+ */
+function inline_form_errors_theme_registry_alter(&$theme_registry) {
+  $hooks = &$theme_registry['layout']['preprocess functions'];
+
+  // remove our hook
+  $key = array_search('inline_form_errors_preprocess_layout', $hooks);
+  unset($hooks[$key]);
+
+  // add our hook immediately after template_preprocess
+  array_shift($hooks);
+  array_unshift($hooks, 'inline_form_errors_preprocess_layout');
+  array_unshift($hooks, 'template_preprocess');
+}
+
+/**
+ * Implement hook_preprocess_layout()
+ *
+ * @param $variables
+ */
+function inline_form_errors_preprocess_layout(&$variables){
+  // remove form errors from the main messages array
+  $inline_form_errors = &backdrop_static('inline_form_errors_form_errors', array());
+
+  if (!empty($inline_form_errors)){
+    $links = array();
+
+    foreach($inline_form_errors as $path => $inline_error){
+      // remove the existing error message
+      $key = array_search($inline_error['error'], $_SESSION['messages']['error']);
+      if ($key !== false){
+        unset($_SESSION['messages']['error'][$key]);
+      }
+
+      // build jump link from top-level item
+      $links[] = "<a href='#{$inline_error['id']}'>{$inline_error['label']}</a>";
+    }
+
+    backdrop_set_message(format_plural( count($inline_form_errors), '1 error has', '@count errors have'). ' been found: ' . implode(', ', $links), 'error' );
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ * Our high module weight should help ensure that our validate function is
+ * running as late as possible.
+ *
+ * @param $form
+ * @param $form_state
+ * @param $form_id
+ */
+function inline_form_errors_form_alter(&$form, &$form_state, $form_id) {
+  $form['#validate'][] = '_inline_form_errors_form_validate';
+}
+
+/**
+ * Get a list of current form errors and process them into inline errors
+ *
+ * @param $form
+ * @param $form_state
+ */
+function _inline_form_errors_form_validate(&$form, &$form_state){
+  $form_errors = form_get_errors();
+
+  if (!empty($form_errors)){
+    foreach($form_errors as $index_trail => $error){
+      _inline_form_errors_set_inline_form_error($form, $index_trail, $error);
+    }
+  }
+}
+
+/**
+ * Find an element in the form array with a given error "index_trail", like
+ * field_something][und][0][upload
+ *
+ * @param $form array
+ * @param $index_trail string
+ * @param $error string
+ */
+function _inline_form_errors_set_inline_form_error( &$form, $index_trail, $error ){
+  $inline_form_errors = &backdrop_static('inline_form_errors_form_errors', array());
+  $parents = explode('][', $index_trail);
+  $element = &inline_form_error_get_form_child_of_form_state_parents($form, $parents);
+
+  if ($element) {
+    $label = $element['#title'];
+
+    // if the field doesn't have a label, look it up from the field instance
+    if (!$label && isset($form['#entity_type'], $form['#bundle'])){
+      $instance = field_info_instance($form['#entity_type'], $parents[0],$form['#bundle']);
+      $label = $instance['label'];
+    }
+    // store everything we need to know about the form element and error
+    // somewhere we can retrieve it later
+    $inline_form_errors[ $index_trail ] = array(
+      'label' => $label,
+      'id' => $element['#id'],
+      'error' => $error,
+    );
+    $element['#suffix'].= "<div class='messages error'>{$error}</div>";
+  }
+}
+
+/**
+ * Recursively search a render array for an element whose #parents array matches
+ * the provided $parents array exactly
+ *
+ * @param $element array
+ * @param $parents array
+ *
+ * @return array|false
+ */
+function &inline_form_error_get_form_child_of_form_state_parents(&$element, $parents ){
+  foreach(element_children($element) as $child){
+    if ($parents === array_map('strval',$element[$child]['#parents'])){
+      return $element[$child];
+    }
+    else if (element_children($element[$child])) {
+      $found = &inline_form_error_get_form_child_of_form_state_parents($element[$child], $parents);
+      if ( $found ){
+        return $found;
+      }
+    }
+  }
+
+  return false;
+}
