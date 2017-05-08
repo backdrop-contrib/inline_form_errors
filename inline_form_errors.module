@@ -1,34 +1,19 @@
 <?php
 
-function inline_form_errors_preprocess_status_messages(&$vars){
-  $inline_form_errors = backdrop_get_messages('inline_form_errors');
-
-  if(!empty($inline_form_errors['inline_form_errors'])){
-    $links = array();
-    foreach($inline_form_errors['inline_form_errors'] as $inline_error){
-      // remove the existing error message
-      $key = array_search($inline_error['error'], $_SESSION['messages']['error']);
-      if ($key !== false){
-        unset($_SESSION['messages']['error'][$key]);
-      }
-
-      // build jump link from top-level item
-      $links[] = "<a href='#{$inline_error['id']}'>{$inline_error['label']}</a>";
-    }
-
-    if(count($links)){
-      backdrop_set_message(format_plural( count($links), '1 error has', '@count errors have'). ' been found: ' . implode(', ', $links), 'error' );
-    }
-  }
-}
-
-function inline_form_errors_preprocess_form_element(&$vars){
-  $element = &$vars['element'];
+/**
+ * Implements hook_preprocess_form_element()
+ *
+ * @param $variables
+ */
+function inline_form_errors_preprocess_form_element(&$variables){
+  $element = &$variables['element'];
   $form_errors = form_get_errors();
-  //$inline_form_errors = &backdrop_static('inline_form_errors', array());
 
   if (!empty($form_errors)){
     foreach($form_errors as $error_name => $error){
+      // check current element #parents against both a constructed 'parents',
+      // and constructed 'grandparents' in order to get best matches across many
+      // field types
       $error_parents = explode('][', $error_name);
       $error_grandparents = $error_parents;
       array_pop($error_grandparents);
@@ -62,6 +47,35 @@ function inline_form_errors_preprocess_form_element(&$vars){
         $element['#title'].= "<a class='inline-form-error-link' id='{$anchor_id}'></a>";
         $element['#children'].= "<div class='messages error'>{$error}</div>";
       }
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_status_messages()
+ *
+ * @param $variables
+ */
+function inline_form_errors_preprocess_status_messages(&$variables){
+  $inline_form_errors = backdrop_get_messages('inline_form_errors');
+
+  if(!empty($inline_form_errors['inline_form_errors'])){
+    $links = array();
+
+    foreach($inline_form_errors['inline_form_errors'] as $inline_error){
+      // remove the existing error message
+      $key = array_search($inline_error['error'], $_SESSION['messages']['error']);
+      if ($key !== false){
+        unset($_SESSION['messages']['error'][$key]);
+      }
+
+      // build jump link from top-level item
+      $links[] = "<a href='#{$inline_error['id']}'>{$inline_error['label']}</a>";
+    }
+
+    if(count($links)){
+      // add our new inline errors as a single 'error' message
+      backdrop_set_message(format_plural( count($links), '1 error has', '@count errors have'). ' been found: ' . implode(', ', $links), 'error' );
     }
   }
 }
