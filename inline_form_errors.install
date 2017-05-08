@@ -1,9 +1,0 @@
-<?php
-
-/**
- * Implements hook_install()
- */
-function inline_form_errors_install() {
-  db_query("UPDATE {system} SET `weight` = 1001 WHERE `name` = 'inline_form_errors' LIMIT 1")
-  ->execute();
-}

@@ -6,4 +6,4 @@ Example that might allow for inline form errors in Backdrop without the need to 
 
 Screenshot 
 
-![inline-form-errors screenshot](https://github.com/daggerhart/inline_form_errors/blob/master/screenshot.png)
+![inline-form-errors screenshot](https://github.com/daggerhart/inline_form_errors/blob/preprocess-only/screenshot-preprocess-only.png)
