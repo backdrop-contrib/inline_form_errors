@@ -63,8 +63,12 @@ function inline_form_errors_preprocess_status_messages(&$variables) {
 
     foreach ($inline_form_errors['inline_form_errors'] as $inline_error) {
       // Remove the existing error message.
-      $key = array_search($inline_error['error'], $_SESSION['messages']['error']);
-      if ($key !== false) {
+      $key = FALSE;
+      if (isset($_SESSION['messages']['error']) && is_array($_SESSION['messages']['error'])) {
+        $key = array_search($inline_error['error'], $_SESSION['messages']['error']);
+      }
+
+      if ($key !== FALSE) {
         unset($_SESSION['messages']['error'][$key]);
       }
 
