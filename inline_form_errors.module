@@ -49,7 +49,7 @@ function inline_form_errors_preprocess_form_element(&$variables){
       $error_grandparents = $error_parents;
       array_pop($error_grandparents);
 
-      $normalized_parents = array_map('strval',$element['#parents']);
+      $normalized_parents = array_map('strval', $element['#parents']);
       if ($error_parents === $normalized_parents || $error_grandparents === $normalized_parents) {
         // This error belongs to this element.
         $label = $element['#title'];
