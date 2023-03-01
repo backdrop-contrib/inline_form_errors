@@ -59,7 +59,7 @@ function inline_form_errors_preprocess_form_element(&$variables){
           $label = $element['#instance']['label'];
         }
         if (!$label && isset($element['#entity_type'], $element['#bundle'])) {
-          $instance = field_info_instance($element['#entity_type'], $element['#parents'][0],$element['#bundle']);
+          $instance = field_info_instance($element['#entity_type'], $element['#parents'][0], $element['#bundle']);
           $label = $instance['label'];
         }
 
@@ -76,8 +76,8 @@ function inline_form_errors_preprocess_form_element(&$variables){
           ), 'inline_form_errors');
         }
 
-        $element['#title'].= "<a class='inline-form-error-link' id='{$anchor_id}'></a>";
-        $element['#children'].= "<div class='messages error'>{$error}</div>";
+        $element['#title'] .= "<a class='inline-form-error-link' id='{$anchor_id}'></a>";
+        $element['#children'] .= "<div class='messages error'>{$error}</div>";
       }
     }
   }
@@ -115,7 +115,9 @@ function inline_form_errors_preprocess_status_messages(&$variables) {
 
     if (count($links)) {
       // Add our new inline errors as a single 'error' message.
-      backdrop_set_message(format_plural( count($links), '1 error has', '@count errors have'). ' been found: ' . implode(', ', $links), 'error' );
+      backdrop_set_message(
+        format_plural(count($links), '1 error has', '@count errors have') . ' been found: ' . implode(', ', $links),
+        'error');
     }
   }
 }
