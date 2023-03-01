@@ -1,5 +1,9 @@
 name = Inline Form Errors
-description = Example for implementing inline for errors without modifying core APIs
+description = Example for implementing inline form errors without modifying core APIs.
 backdrop = 1.x
 type = module
-
+configure = admin/config/system/inline_form_errors
+package = Fields
+tags[] = accessibility
+tags[] = forms
+tags[] = errors

@@ -1,6 +1,37 @@
 <?php
 
 /**
+ * @file
+ * Add form errors inline.
+ */
+
+/**
+ * Implements hook_config_info().
+ */
+function inline_form_errors_config_info() {
+  $prefixes['inline_form_errors.settings'] = array(
+    'label' => t('Inline Form Errors settings'),
+    'group' => t('Configuration'),
+  );
+  return $prefixes;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function inline_form_errors_menu() {
+  $items['admin/config/system/inline_form_errors'] = array(
+    'title' => 'Inline Form Errors',
+    'description' => 'Configure Inline Form Errors.',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('inline_form_errors_admin_settings'),
+    'access arguments' => array('administer site configuration'),
+    'file' => 'inline_form_errors.admin.inc',
+  );
+  return $items;
+}
+
+/**
  * Implements hook_preprocess_form_element()
  *
  * @param array $variables
@@ -35,13 +66,15 @@ function inline_form_errors_preprocess_form_element(&$variables){
         // Custom id, so we don't have to care what the form provides.
         $anchor_id = backdrop_html_id('inline-error-' . implode('-', $element['#parents']));
 
-        // Save the error somewhere we can use it later.
-        backdrop_set_message(array(
-          'id' => $anchor_id,
-          'label' => $label,
-          'error' => $error,
-          'error_name' => $error_name,
-        ), 'inline_form_errors');
+        if (config_get('inline_form_errors.settings', 'combine_top_error_messages')) {
+          // Save the error somewhere we can use it later.
+          backdrop_set_message(array(
+            'id' => $anchor_id,
+            'label' => $label,
+            'error' => $error,
+            'error_name' => $error_name,
+          ), 'inline_form_errors');
+        }
 
         $element['#title'].= "<a class='inline-form-error-link' id='{$anchor_id}'></a>";
         $element['#children'].= "<div class='messages error'>{$error}</div>";
@@ -56,6 +89,10 @@ function inline_form_errors_preprocess_form_element(&$variables){
  * @param array $variables
  */
 function inline_form_errors_preprocess_status_messages(&$variables) {
+  if (!config_get('inline_form_errors.settings', 'combine_top_error_messages')) {
+    return;
+  }
+
   $inline_form_errors = backdrop_get_messages('inline_form_errors');
 
   if (!empty($inline_form_errors['inline_form_errors'])) {
