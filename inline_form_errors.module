@@ -38,6 +38,16 @@ function inline_form_errors_menu() {
  */
 function inline_form_errors_preprocess_form_element(&$variables){
   $element = &$variables['element'];
+
+  // Skip if the parent element will deal with the errors.
+  $skip_children = array(
+    'radio',
+    'select_or_other'
+  );
+  if (in_array($element['#type'], $skip_children)) {
+    return;
+  }
+
   $form_errors = form_get_errors();
 
   if (!empty($form_errors)) {
@@ -65,6 +75,7 @@ function inline_form_errors_preprocess_form_element(&$variables){
 
         // Custom id, so we don't have to care what the form provides.
         $anchor_id = backdrop_html_id('inline-error-' . implode('-', $element['#parents']));
+        $error_id = backdrop_html_id('error-' . implode('-', $element['#parents']));
 
         if (config_get('inline_form_errors.settings', 'combine_top_error_messages')) {
           // Save the error somewhere we can use it later.
@@ -74,10 +85,11 @@ function inline_form_errors_preprocess_form_element(&$variables){
             'error' => $error,
             'error_name' => $error_name,
           ), 'inline_form_errors');
-        }
 
-        $element['#title'] .= "<a class='inline-form-error-link' id='{$anchor_id}'></a>";
-        $element['#children'] .= "<div class='messages error'>{$error}</div>";
+          $element['#title'] .= "<a class='inline-form-error-link' id='{$anchor_id}'></a>";
+
+        }
+        $element['#children'] .= "<div class='messages error' id={$error_id}>{$error}</div>";
       }
     }
   }
