@@ -44,7 +44,7 @@ function inline_form_errors_preprocess_form_element(&$variables){
     'radio',
     'select_or_other'
   );
-  if (in_array($element['#type'], $skip_children)) {
+  if (isset($element['#type']) && in_array($element['#type'], $skip_children)) {
     return;
   }
 
