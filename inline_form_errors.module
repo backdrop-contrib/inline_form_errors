@@ -66,7 +66,13 @@ function inline_form_errors_preprocess_form_element(&$variables){
       $normalized_parents = array_map('strval', $element['#parents']);
       if ($error_parents === $normalized_parents || $error_grandparents === $normalized_parents) {
         // This error belongs to this element.
-        $label = $element['#title'];
+
+        // Default label is the field type in case there's no title.
+        $label = $element['#type'];
+
+        if (isset($element['#title'])) {
+          $label = $element['#title'];
+        }
 
         // Find the label.
         if (!$label && isset($element['#instance'])) {
@@ -90,7 +96,7 @@ function inline_form_errors_preprocess_form_element(&$variables){
             'error_name' => $error_name,
           ), 'inline_form_errors');
 
-          $element['#title'] .= "<a class='inline-form-error-link' id='{$anchor_id}'></a>";
+          $element['#title'] = (isset($element['#title']) ? $element['#title'] : '') . "<a class='inline-form-error-link' id='{$anchor_id}'></a>";
 
         }
         $element['#children'] .= "<div class='messages error' id={$error_id}>{$error}</div>";
